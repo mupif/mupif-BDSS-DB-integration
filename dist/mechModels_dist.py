@@ -99,6 +99,6 @@ class WorkFlow2_dist(mechModels.WorkFlow2):
 
     def solveStep(self, istep, stageID=0, runInBackground=False):
         self.solver.solveStep(istep)
-        self.maxDeflection = self.solver.getField(FieldID.FID_Displacement, self.solver.getAssemblyTime(istep))
+
         
         
