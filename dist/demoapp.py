@@ -770,7 +770,7 @@ class mechanical(Application.Application):
         return tstep.getTime()
 
     def readInput(self):
-
+        print('huhu')
         dirichletModelEdges=[]
         loadModelEdges=[]
         try:
@@ -1134,19 +1134,52 @@ class mechanical(Application.Application):
 @Pyro4.expose
 class EulerBernoulli(Application.Application):
     """Calculates maximum deflection of cantilever beam with a uniform vertical distributed load. Uses Euler-Bernoulli beam neglecting shear deformation."""
-    
-    def __init__(self, b, h, L, E, f):
-        self.b = b
-        self.h = h
-        self.L = L
-        self.E = E
-        self.f = f
+
+    def __init__(self, file, workdir):
+        super(EulerBernoulli, self).__init__(file, workdir)    
+        self.b = 0.01
+        self.h = 1
+        self.L  = 5
+        self.E = 30.0e9
+        self.f = 20
         self.deflection = 0.
+    #def __init__(self, b = 0.01, h = 1, L = 5, E = 30, f = 20):
+    #    self.b = b
+    #    self.h = h
+    #    self.L = L
+    #    self.E = E
+    #    self.f = f
+    #    self.deflection = 0.
+
+    def readInput(self):
+        
+        try:
+            f = open(self.workDir+os.path.sep+self.file, 'r')
+            # geometry
+            rec = getline(f).split()
+            self.b=float(rec[0])
+            self.h=float(rec[1])
+            self.L=float(rec[2])
+            #Young's modulus and Poissons' ratio
+            rec = getline(f).split()
+            self.E = float(rec[0])
+            #Load
+            rec = getline(f).split()
+            self.f = float(rec[0])
+            f.close()
+        except  Exception as e:
+            log.exception(e)
+
+
     
     def solveStep(self, tstep, stageID=0, runInBackground=False):
+        self.readInput()        
         I = self.b*self.h**3/12.
         self.deflection = self.f*self.L**4/8./self.E/I
         
     def getField(self, fieldID, time):
+        print('Printing EB field')
         if (fieldID == FieldID.FID_Displacement):
             return self.deflection
+
+    

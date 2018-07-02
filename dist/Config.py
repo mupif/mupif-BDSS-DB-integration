@@ -23,10 +23,10 @@ class config(object):
         Pyro4.config.SERVERTYPE="multiplex"
 
         #Absolute path to mupif directory - used in JobMan2cmd
-        mupif_dir = os.path.abspath(os.path.join(os.getcwd(), "../../.."))
-        sys.path.append(mupif_dir)
-        mupif_dir = os.path.abspath(os.path.join(os.getcwd(), "../.."))
-        sys.path.append(mupif_dir)
+#        mupif_dir = os.path.abspath(os.path.join(os.getcwd(), "../../.."))
+ #       sys.path.append(mupif_dir)
+  #      mupif_dir = os.path.abspath(os.path.join(os.getcwd(), "../.."))
+   #     sys.path.append(mupif_dir)
         
         #commmon attributes
         #Password for accessing nameServer and applications

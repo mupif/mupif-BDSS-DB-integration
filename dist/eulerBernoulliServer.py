@@ -1,5 +1,5 @@
 import os,sys
-sys.path.extend(['..','../../commit','../../..'])
+sys.path.extend(['..','../mupif','../../..'])
 from mupif import *
 Util.changeRootLogger('BDSS.log')
 
@@ -18,6 +18,6 @@ ns = PyroUtil.connectNameServer(nshost=cfg.nshost, nsport=cfg.nsport, hkey=cfg.h
 daemon = PyroUtil.runDaemon(host=cfg.server, port=cfg.serverPort, nathost=cfg.serverNathost, natport=cfg.serverNatport, hkey=cfg.hkey)
 
 #Run job manager on a server
-jobMan = SimpleJobManager.SimpleJobManager2(daemon, ns, cfg.applicationClass, cfg.jobManName, cfg.portsForJobs, cfg.jobManWorkDir, os.getcwd(), 'serverConfig', mode, cfg.jobMan2CmdPath, cfg.maxJobs, cfg.socketApps)
+jobMan = SimpleJobManager.SimpleJobManager2(daemon, ns, cfg.applicationClass, cfg.jobManName, cfg.portsForJobs, cfg.jobManWorkDir, os.getcwd(), 'eulerBernoulliServerConfig', mode, cfg.jobMan2CmdPath, cfg.maxJobs, cfg.socketApps)
 
 PyroUtil.runJobManagerServer(server=cfg.server, port=cfg.serverPort, nathost=cfg.serverNathost, natport=cfg.serverNatport, nshost=cfg.nshost, nsport=cfg.nsport, appName=cfg.jobManName, hkey=cfg.hkey, jobman=jobMan, daemon=daemon)

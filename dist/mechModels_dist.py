@@ -5,7 +5,7 @@
 #Need to set up path to mupif/examples/Example10-stacTM-local
 
 import sys
-sys.path.extend(['../','../../mp.git', '../../mp.git/mupif/examples/Example10-stacTM-local'])
+sys.path.extend(['../','../../mp.git'])
 import demoapp
 import meshgen
 from mupif import *
@@ -26,9 +26,20 @@ cfg = serverConfig(mode)
 from eulerBernoulliServerConfig import serverConfig
 ebsc = serverConfig(mode)
 
+#Compulsory parameters for the simulation
+thickness=0.01    #Beam (plane) thickness (m)
+height=1.0        #Beam height (m)
+length=5.0        #Beam length (m)
+Emodulus=30.0e+9  #E modulus (Pa)
+PoissonRatio=0.25 #Poisson's ratio (-)
+distribLoad=2e+2  #Distributed vertical load (N/m)
 
+#Optional parameters for meshing and input filename
+numX=20 #Number of finite elements in X direction
+numY=8 #Number of finite elements in Y direction
 
-fileName = 'workFlow1.in'
+fileName1 = 'workFlow1.in'
+fileName2 = 'workFlow2.in'
 
 
 #Plane stress solution using finite elements
@@ -50,23 +61,24 @@ class WorkFlow1_dist(mechModels.WorkFlow1):
             if ((self.solver is not None)):
                 solverSignature=self.solver.getApplicationSignature()
                 log.info("Working solver on server " + solverSignature)
-                log.info("Uploading input files to servers")
-                self.createAppInputFile(self.length,self.height,self.Emodulus)
-       
-                pf = self.jobMan.getPyroFile(self.solver.getJobID(), fileName, 'wb')
-                PyroUtil.uploadPyroFile(fileName, pf, cfg.hkey)
             else:
                 log.debug("Connection to server failed, exiting")
 
 
     def solveStep(self, istep, stageID=0, runInBackground=False):
         #Input data for app1 are in cantilever1.in
+        log.info("Uploading input files to servers")
+        self.createAppInputFile(self.length,self.height,self.Emodulus)       
+        pf = self.jobMan.getPyroFile(self.solver.getJobID(), fileName1, 'wb')
+        PyroUtil.uploadPyroFile(fileName1, pf, cfg.hkey)
+        
+        print(self.Emodulus)
         self.solver.solveStep(istep)
         f = self.solver.getField(FieldID.FID_Displacement, self.solver.getAssemblyTime(istep))
         #log.info("URI of tthe problem's field is " + str(uri) )
         #f = Pyro4.Proxy(uri)
         f.field2VTKData().tofile('workFlow1.vtk')
-        self.maxDeflection = -f.evaluate((1,0.,0)).getValue()[1]
+        self.maxDeflection = -f.evaluate((self.length,0.,0)).getValue()[1]
 
 
 class WorkFlow2_dist(mechModels.WorkFlow2):
@@ -86,19 +98,25 @@ class WorkFlow2_dist(mechModels.WorkFlow2):
         else:
             if ((self.solver is not None)):
                 solverSignature=self.solver.getApplicationSignature()
-                log.info("Working solver on server " + solverSignature)
-                log.info("Uploading input files to servers")
-                self.createAppInputFile(self.length,self.height,self.Emodulus)
-       
-                pf = self.jobMan.getPyroFile(self.solver.getJobID(), fileName, 'wb')
-                PyroUtil.uploadPyroFile(fileName, pf, cfg.hkey)
-
+                log.info("Working solver on server " + solverSignature)               
             else:
                 log.debug("Connection to server failed, exiting")
 
+    def createAppInputFile(self,b, h, L, E, f):
+        inFile = open(fileName2,'w') 
+        inFile.write('%f %f %f\n' %(b,h, L))
+        inFile.write('%f\n' %(E))
+        inFile.write('%f\n' %(f))
+
 
     def solveStep(self, istep, stageID=0, runInBackground=False):
+        log.info("Uploading input files to servers")
+        self.createAppInputFile(thickness, self.height, self.length, self.Emodulus, distribLoad)      
+        pf = self.jobMan.getPyroFile(self.solver.getJobID(), fileName2, 'wb')
+        PyroUtil.uploadPyroFile(fileName2, pf, ebsc.hkey)
         self.solver.solveStep(istep)
+        self.maxDeflection = self.solver.getField(FieldID.FID_Displacement, istep.getTargetTime())
+
 
         
         
